@@ -88,7 +88,9 @@ namespace X.PagedList
         /// <seealso cref="PagedList{T}"/>
         public static IPagedList<T> ToPagedList<T>(this IEnumerable<T> superset)
         {
-            return new PagedList<T>(superset, 1, superset.Count());
+            int supersetSize = superset.Count();
+            int pageSize = supersetSize == 0 ? 1 : supersetSize;
+            return new PagedList<T>(superset, 1, pageSize);
         }
 
         /// <summary>
@@ -172,18 +174,30 @@ namespace X.PagedList
 	    /// <seealso cref="PagedList{T}"/>
 	    public static async Task<IPagedList<T>> ToPagedListAsync<T>(this IQueryable<T> superset, int pageNumber, int pageSize, CancellationToken cancellationToken)
         {
+            if (pageNumber < 1)
+            {
+                throw new ArgumentOutOfRangeException($"pageNumber = {pageNumber}. PageNumber cannot be below 1.");
+            }
+
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException($"pageSize = {pageSize}. PageSize cannot be less than 1.");
+            }
+
             var subset = new List<T>();
             var totalCount = 0;
 
-            if ((superset != null) && (superset.Any()))
+            if (superset != null)
             {
                 totalCount = superset.Count();
-
-                subset.AddRange(
-                    (pageNumber == 1)
-                        ? await superset.Skip(0).Take(pageSize).ToListAsync(cancellationToken).ConfigureAwait(false)
-                        : await superset.Skip(((pageNumber - 1) * pageSize)).Take(pageSize).ToListAsync(cancellationToken).ConfigureAwait(false)
-                );
+                if (totalCount > 0)
+                {
+                    subset.AddRange(
+                        (pageNumber == 1)
+                            ? await superset.Skip(0).Take(pageSize).ToListAsync(cancellationToken).ConfigureAwait(false)
+                            : await superset.Skip(((pageNumber - 1) * pageSize)).Take(pageSize).ToListAsync(cancellationToken).ConfigureAwait(false)
+                    );
+                }
             }
 
             return new StaticPagedList<T>(subset, pageNumber, pageSize, totalCount);

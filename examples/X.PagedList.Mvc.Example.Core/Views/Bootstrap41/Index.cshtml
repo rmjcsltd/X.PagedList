@@ -4,10 +4,12 @@
 }
 
 @using X.PagedList.Mvc.Core; @*import this so we get our HTML Helper*@
-@using X.PagedList; @*import this so we can cast our list to IPagedList (only necessary because ViewBag is dynamic)*@
+@using X.PagedList; 
+@using X.PagedList.Web.Common
+@*import this so we can cast our list to IPagedList (only necessary because ViewBag is dynamic)*@
 
 <!-- import the included stylesheet for some (very basic) default styling -->
-<link href="/Content/PagedList.css" rel="stylesheet" type="text/css" />
+<link href="/css/PagedList.css" rel="stylesheet" type="text/css" />
 
 <!-- loop through each of your products and display it however you want. we're just printing the name here -->
 <section class="mt-4">
@@ -21,7 +23,10 @@
 </section>
 
 <!-- output a paging control that lets the user navigation to the previous page, next page, etc -->
-@Html.PagedListPager((IPagedList)ViewBag.Names, page => Url.Action("Index", new { page }), new X.PagedList.Mvc.Common.PagedListRenderOptionsBase
+@Html.PagedListPager((IPagedList)ViewBag.Names, page => Url.Action("Index", new { page }), new PagedListRenderOptions
 {
+    PageClasses = new string[] { "page-link" },
+    UlElementClasses = new string[] { "pagination" },
+    LiElementClasses = new string[] { "page-item" },
     DisplayItemSliceAndTotal = true,
 })
